@@ -22,5 +22,5 @@ station can be found on https://www.vigicrues.gouv.fr/
 
 ### Screenshots
 
-![entities](https://raw.githubusercontent.com/julcollas/hass-vigicrues/master/screenshots/entities.png)
-![graph](//raw.githubusercontent.com/julcollas/hass-vigicrues/master/screenshots/graph.png)
+![entities](screenshots/entities.png)
+![graph](screenshots/graph.png)
