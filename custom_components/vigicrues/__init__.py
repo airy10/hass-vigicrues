@@ -1,0 +1,1 @@
+"""The Vigicrues sensor integration."""
