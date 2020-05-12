@@ -1,1 +1,1 @@
-"""The Vigicrues sensor integration."""
+"""The vigicrues component."""

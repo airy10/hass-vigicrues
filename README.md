@@ -10,9 +10,17 @@ Add the following to your `configuration.yaml` file:
 
 ```yaml
 # Example configuration.yaml entry
+
 sensor:
   - platform: vigicrues
-    station: S516001001
+    stations:
+      - S516001001
+      - S5160010XX
 ```
 
 station can be found on https://www.vigicrues.gouv.fr/
+
+### Screenshots
+
+![entities](https://raw.githubusercontent.com/julcollas/hass-vigicrues/master/screenshots/entities.png)
+![graph](//raw.githubusercontent.com/julcollas/hass-vigicrues/master/screenshots/graph.png)
