@@ -1,6 +1,7 @@
 {
   "domain": "vigicrues",
   "name": "VigiCrues",
+  "version": "0.0.1"
   "documentation": "https://github.com/julcollas/hass-vigicrues",
   "codeowners": ["@julcollas"],
   "requirements": ["requests"]
