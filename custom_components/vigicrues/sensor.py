@@ -13,7 +13,7 @@ from .const import CONF_STATIONS, VIGICRUES_URL, METRICS_INFO
 
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = timedelta(seconds=60)
+SCAN_INTERVAL = timedelta(minutes=30)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {vol.Required(CONF_STATIONS): vol.All(cv.ensure_list, [cv.string])}
