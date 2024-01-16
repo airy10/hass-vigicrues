@@ -1,3 +1,5 @@
+[![hacs][hacs_badge]][hacs]
+
 # Vigicrues Integration for Home Assistant
 
 ### Installation
@@ -24,3 +26,6 @@ station can be found on https://www.vigicrues.gouv.fr/
 
 ![entities](screenshots/entities.png)
 ![graph](screenshots/graph.png)
+
+[hacs]: https://github.com/custom-components/hacs
+[hacs_badge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge
