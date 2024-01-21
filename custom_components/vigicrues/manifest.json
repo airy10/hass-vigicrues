@@ -4,6 +4,6 @@
   "codeowners": ["@julcollas"],
   "documentation": "https://github.com/julcollas/hass-vigicrues",
   "iot_class": "cloud_polling",
-  "requirements": ["requests"]
-  "version": "0.0.1",
+  "requirements": ["requests"],
+  "version": "0.0.1"
 }
