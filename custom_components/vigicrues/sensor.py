@@ -5,7 +5,7 @@ import requests
 import voluptuous as vol
 
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.util import slugify
@@ -70,6 +70,8 @@ class VigicruesSensor(Entity):
 class VigicruesHeightSensor(VigicruesSensor):
     """Representation of Vigicrues Height Sensor."""
 
+    _attr_device_class = SensorDeviceClass.DISTANCE
+
     def __init__(self, station):
         """Initialize the sensor."""
         super().__init__(station, "H")
@@ -88,6 +90,8 @@ class VigicruesHeightSensor(VigicruesSensor):
 
 class VigicruesWaterFlowRateSensor(VigicruesSensor):
     """Representation of Vigicrues WaterFlow Sensor."""
+
+    _attr_device_class = SensorDeviceClass.VOLUME_FLOW_RATE
 
     def __init__(self, station):
         """Initialize the sensor."""
