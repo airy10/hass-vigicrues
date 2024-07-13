@@ -10,7 +10,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.util import slugify
 
-from .const import CONF_STATIONS, VIGICRUES_URL, HUBEAU_URL, METRICS_INFO
+from .const import CONF_STATIONS, VIGICRUES_API, HUBEAU_URL, METRICS_INFO, VIGICRUES_PICTURE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,6 +46,8 @@ class VigicruesSensor(Entity):
             ATTR_LONGITUDE: self.station.coordinates[0],
             ATTR_LATITUDE: self.station.coordinates[1],
         }
+        self._attr_entity_picture = station.get_entity_picture()
+
 
     @property
     def name(self):
@@ -135,9 +137,9 @@ class Vigicrues(object):
         params = {"CdStationHydro": self.station_id, "GrdSerie": _type}
 
         try:
-            data = requests.get(VIGICRUES_URL, params=params).json()
+            data = requests.get(VIGICRUES_API, params=params).json()
         except Exception:
-            _LOGGER.error("Unable to get data from %s", VIGICRUES_URL)
+            _LOGGER.error("Unable to get data from %s", VIGICRUES_API)
             raise Exception("Unable to get data")
 
         return data
@@ -152,6 +154,14 @@ class Vigicrues(object):
             raise Exception("Unable to get data")
 
         return data.get('data')[0].get('geometry').get('coordinates')
+
+    def get_entity_picture(self):
+        url_picture = VIGICRUES_PICTURE + "/photo_" + self.station_id + ".jpg"
+        response = requests.get(url_picture)
+        if response.status_code == 200:
+            return url_picture
+        else:
+            return ""
 
     def __get_last_point(self, _type):
         try:
