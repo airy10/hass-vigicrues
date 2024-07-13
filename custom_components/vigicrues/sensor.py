@@ -7,9 +7,10 @@ import voluptuous as vol
 from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 import homeassistant.helpers.config_validation as cv
+from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.util import slugify
 
-from .const import CONF_STATIONS, VIGICRUES_URL, METRICS_INFO
+from .const import CONF_STATIONS, VIGICRUES_URL, HUBEAU_URL, METRICS_INFO
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +42,10 @@ class VigicruesSensor(Entity):
         self.station = station
         self._type = _type
         self._name = f"Vigicrues {self.station.name} {self.name_type()}"
+        self._attr_extra_state_attributes = {
+            ATTR_LONGITUDE: self.station.coordinates[0],
+            ATTR_LATITUDE: self.station.coordinates[1],
+        }
 
     @property
     def name(self):
@@ -109,6 +114,7 @@ class Vigicrues(object):
         self.name = self.get_name()
         self.waterflowrate = None
         self.height = None
+        self.coordinates = self.get_coordinates()
 
     def get_height(self):
         return self.__get_last_point("H")
@@ -129,6 +135,17 @@ class Vigicrues(object):
             raise Exception("Unable to get data")
 
         return data
+
+    def get_coordinates(self):
+        params = {"code_station": self.station_id , "size": 1}
+
+        try:
+            data = requests.get(HUBEAU_URL, params=params).json()
+        except Exception:
+            _LOGGER.error("Unable to get coordinates from %s", HUBEAU_URL)
+            raise Exception("Unable to get data")
+
+        return data.get('data')[0].get('geometry').get('coordinates')
 
     def __get_last_point(self, _type):
         try:
