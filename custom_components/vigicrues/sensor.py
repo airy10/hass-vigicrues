@@ -10,7 +10,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.util import slugify
 
-from .const import CONF_STATIONS, VIGICRUES_API, HUBEAU_URL, METRICS_INFO, VIGICRUES_PICTURE
+from .const import CONF_STATIONS, VIGICRUES_API, HUBEAU_API, METRICS_INFO, VIGICRUES_PICTURE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -148,9 +148,9 @@ class Vigicrues(object):
         params = {"code_station": self.station_id , "size": 1}
 
         try:
-            data = requests.get(HUBEAU_URL, params=params).json()
+            data = requests.get(HUBEAU_API, params=params).json()
         except Exception:
-            _LOGGER.error("Unable to get coordinates from %s", HUBEAU_URL)
+            _LOGGER.error("Unable to get coordinates from %s", HUBEAU_API)
             raise Exception("Unable to get data")
 
         return data.get('data')[0].get('geometry').get('coordinates')
