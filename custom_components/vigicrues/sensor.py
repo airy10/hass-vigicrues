@@ -71,6 +71,7 @@ class VigicruesHeightSensor(VigicruesSensor):
     """Representation of Vigicrues Height Sensor."""
 
     _attr_device_class = SensorDeviceClass.DISTANCE
+    _attr_icon = "mdi:waves-arrow-up"
 
     def __init__(self, station):
         """Initialize the sensor."""
@@ -92,6 +93,7 @@ class VigicruesWaterFlowRateSensor(VigicruesSensor):
     """Representation of Vigicrues WaterFlow Sensor."""
 
     _attr_device_class = SensorDeviceClass.VOLUME_FLOW_RATE
+    _attr_icon = "mdi:waves"
 
     def __init__(self, station):
         """Initialize the sensor."""
