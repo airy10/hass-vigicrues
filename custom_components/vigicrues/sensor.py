@@ -153,10 +153,10 @@ class Vigicrues(object):
             _LOGGER.error("Unable to get coordinates from %s", HUBEAU_API)
             raise Exception("Unable to get data")
 
-        return data.get('data')[0].get('geometry').get('coordinates')
+        return data.get("data")[0].get("geometry").get("coordinates")
 
     def get_entity_picture(self):
-        url_picture = VIGICRUES_PICTURE + "/photo_" + self.station_id + ".jpg"
+        url_picture = f"{VIGICRUES_PICTURE}/photo_{self.station_id}.jpg"
         response = requests.get(url_picture)
         if response.status_code == 200:
             return url_picture
