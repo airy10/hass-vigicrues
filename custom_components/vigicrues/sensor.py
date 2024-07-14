@@ -5,11 +5,12 @@ import requests
 import voluptuous as vol
 
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass
 import homeassistant.helpers.config_validation as cv
+from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.util import slugify
 
-from .const import CONF_STATIONS, VIGICRUES_URL, METRICS_INFO
+from .const import CONF_STATIONS, VIGICRUES_API, HUBEAU_API, METRICS_INFO, VIGICRUES_PICTURE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +42,12 @@ class VigicruesSensor(Entity):
         self.station = station
         self._type = _type
         self._name = f"Vigicrues {self.station.name} {self.name_type()}"
+        self._attr_extra_state_attributes = {
+            ATTR_LONGITUDE: self.station.coordinates[0],
+            ATTR_LATITUDE: self.station.coordinates[1],
+        }
+        self._attr_entity_picture = station.get_entity_picture()
+
 
     @property
     def name(self):
@@ -65,6 +72,9 @@ class VigicruesSensor(Entity):
 class VigicruesHeightSensor(VigicruesSensor):
     """Representation of Vigicrues Height Sensor."""
 
+    _attr_device_class = SensorDeviceClass.DISTANCE
+    _attr_icon = "mdi:waves-arrow-up"
+
     def __init__(self, station):
         """Initialize the sensor."""
         super().__init__(station, "H")
@@ -83,6 +93,9 @@ class VigicruesHeightSensor(VigicruesSensor):
 
 class VigicruesWaterFlowRateSensor(VigicruesSensor):
     """Representation of Vigicrues WaterFlow Sensor."""
+
+    _attr_device_class = SensorDeviceClass.VOLUME_FLOW_RATE
+    _attr_icon = "mdi:waves"
 
     def __init__(self, station):
         """Initialize the sensor."""
@@ -109,6 +122,7 @@ class Vigicrues(object):
         self.name = self.get_name()
         self.waterflowrate = None
         self.height = None
+        self.coordinates = self.get_coordinates()
 
     def get_height(self):
         return self.__get_last_point("H")
@@ -123,12 +137,31 @@ class Vigicrues(object):
         params = {"CdStationHydro": self.station_id, "GrdSerie": _type}
 
         try:
-            data = requests.get(VIGICRUES_URL, params=params).json()
+            data = requests.get(VIGICRUES_API, params=params).json()
         except Exception:
-            _LOGGER.error("Unable to get data from %s", VIGICRUES_URL)
+            _LOGGER.error("Unable to get data from %s", VIGICRUES_API)
             raise Exception("Unable to get data")
 
         return data
+
+    def get_coordinates(self):
+        params = {"code_station": self.station_id , "size": 1}
+
+        try:
+            data = requests.get(HUBEAU_API, params=params).json()
+        except Exception:
+            _LOGGER.error("Unable to get coordinates from %s", HUBEAU_API)
+            raise Exception("Unable to get data")
+
+        return data.get("data")[0].get("geometry").get("coordinates")
+
+    def get_entity_picture(self):
+        url_picture = f"{VIGICRUES_PICTURE}/photo_{self.station_id}.jpg"
+        response = requests.get(url_picture)
+        if response.status_code == 200:
+            return url_picture
+        else:
+            return ""
 
     def __get_last_point(self, _type):
         try:
