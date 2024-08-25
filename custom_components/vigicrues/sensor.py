@@ -131,7 +131,8 @@ class Vigicrues(object):
         return self.__get_last_point("Q")
 
     def get_name(self):
-        return self.get_data("H").get("Serie").get("LbStationHydro")
+        serie_data = self.get_data("H").get("Serie")
+        return f"{serie_data.get('LbStationHydro')} - {serie_data.get('CdStationHydro')}"
 
     def get_data(self, _type):
         params = {"CdStationHydro": self.station_id, "GrdSerie": _type}
