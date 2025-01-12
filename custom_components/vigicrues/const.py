@@ -1,4 +1,4 @@
-from homeassistant.const import UnitOfVolumeFlowRate, UnitOfLength
+from homeassistant.const import UnitOfLength
 
 CONF_STATIONS = "stations"
 VIGICRUES_URL = "https://www.vigicrues.gouv.fr"
@@ -9,5 +9,5 @@ HUBEAU_API = "https://hubeau.eaufrance.fr/api/v1/hydrometrie/referentiel/station
 
 METRICS_INFO = {
     "H": {"name": "Hauteur", "unit": UnitOfLength.METERS},
-    "Q": {"name": "Debit", "unit": UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR},
+    "Q": {"name": "Debit", "unit": "m³/s"},
 }
