@@ -3,6 +3,7 @@ from datetime import timedelta
 import logging
 import requests
 import voluptuous as vol
+from pyproj import Proj, transform, CRS
 
 from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass
@@ -10,7 +11,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.util import slugify
 
-from .const import CONF_STATIONS, VIGICRUES_API, HUBEAU_API, METRICS_INFO, VIGICRUES_PICTURE
+from .const import CONF_STATIONS, VIGICRUES_OBSERVATIONS_API, VIGICRUES_STATION_API, METRICS_INFO, VIGICRUES_PICTURE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -138,31 +139,48 @@ class Vigicrues(object):
         params = {"CdStationHydro": self.station_id, "GrdSerie": _type}
 
         try:
-            data = requests.get(VIGICRUES_API, params=params).json()
+            data = requests.get(VIGICRUES_OBSERVATIONS_API, params=params).json()
+            r.raise_for_status()
         except Exception:
-            _LOGGER.error("Unable to get data from %s", VIGICRUES_API)
+            _LOGGER.error("Unable to get data from %s", VIGICRUES_OBSERVATIONS_API)
             raise Exception("Unable to get data")
 
         return data
 
     def get_coordinates(self):
-        params = {"code_station": self.station_id , "size": 1}
+        """ Get coordinates from VIGICRUE and transform them in longitude and latitute """
+        params = {"CdStationHydro": self.station_id}
 
         try:
-            data = requests.get(HUBEAU_API, params=params).json()
+            data = requests.get(VIGICRUES_STATION_API, params=params).json()
+            r.raise_for_status()
         except Exception:
-            _LOGGER.error("Unable to get coordinates from %s", HUBEAU_API)
+            _LOGGER.error("Unable to get coordinates from %s", VIGICRUES_STATION_API)
             raise Exception("Unable to get data")
 
-        return data.get("data")[0].get("geometry").get("coordinates")
+        coordstation = data.get("CoordStationHydro")
+        coordx, coordy = coordstation.get("CoordXStationHydro"), coordstation.get("CoordYStationHydro")
+
+        # Define the source coordinate system (Lambert 93, EPSG:2154)
+        proj_lambert93 = Proj(CRS.from_epsg(2154))
+
+        # Define the target coordinate system (WGS 84, EPSG:4326)
+        proj_wgs84 = Proj(CRS.from_epsg(4326))
+
+        # Coordinate transformation
+        longitude, latitude = transform(proj_lambert93, proj_wgs84, coordx, coordy)
+
+        return (longitude, latitude)
 
     def get_entity_picture(self):
         url_picture = f"{VIGICRUES_PICTURE}/photo_{self.station_id}.jpg"
-        response = requests.get(url_picture)
-        if response.status_code == 200:
-            return url_picture
-        else:
+        try:
+            response = requests.get(url_picture)
+            r.raise_for_status()
+        except Exception:
             return ""
+        else:
+            return url_picture
 
     def __get_last_point(self, _type):
         try:
