@@ -193,7 +193,7 @@ class Vigicrues(object):
 
         try:
             data = requests.get(VIGICRUES_OBSERVATIONS_API, params=params).json()
-            r.raise_for_status()
+            data.raise_for_status()
         except Exception:
             _LOGGER.error("Unable to get data from %s", VIGICRUES_OBSERVATIONS_API)
             raise Exception("Unable to get data")
@@ -206,7 +206,7 @@ class Vigicrues(object):
 
         try:
             data = requests.get(VIGICRUES_STATION_API, params=params).json()
-            r.raise_for_status()
+            data.raise_for_status()
         except Exception:
             _LOGGER.error("Unable to get coordinates from %s", VIGICRUES_STATION_API)
             raise Exception("Unable to get data")
@@ -223,7 +223,7 @@ class Vigicrues(object):
         url_picture = f"{VIGICRUES_PICTURE}/photo_{self.station_id}.jpg"
         try:
             response = requests.get(url_picture)
-            r.raise_for_status()
+            response.raise_for_status()
         except Exception:
             return ""
         else:
