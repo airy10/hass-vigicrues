@@ -192,26 +192,26 @@ class Vigicrues(object):
         params = {"CdStationHydro": self.station_id, "GrdSerie": _type}
 
         try:
-            data = requests.get(VIGICRUES_OBSERVATIONS_API, params=params).json()
+            data = requests.get(VIGICRUES_OBSERVATIONS_API, params=params)
             data.raise_for_status()
         except Exception:
             _LOGGER.error("Unable to get data from %s", VIGICRUES_OBSERVATIONS_API)
             raise Exception("Unable to get data")
 
-        return data
+        return data.json()
 
     def get_coordinates(self):
         """ Get coordinates from VIGICRUE and transform them in longitude and latitute """
         params = {"CdStationHydro": self.station_id}
 
         try:
-            data = requests.get(VIGICRUES_STATION_API, params=params).json()
+            data = requests.get(VIGICRUES_STATION_API, params=params)
             data.raise_for_status()
         except Exception:
             _LOGGER.error("Unable to get coordinates from %s", VIGICRUES_STATION_API)
             raise Exception("Unable to get data")
 
-        coordstation = data.get("CoordStationHydro")
+        coordstation = data.json().get("CoordStationHydro")
         coordx, coordy = coordstation.get("CoordXStationHydro"), coordstation.get("CoordYStationHydro")
 
         # Coordinate transformation
