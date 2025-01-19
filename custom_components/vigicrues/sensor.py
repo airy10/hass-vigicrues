@@ -215,7 +215,7 @@ class Vigicrues(object):
         coordx, coordy = coordstation.get("CoordXStationHydro"), coordstation.get("CoordYStationHydro")
 
         # Coordinate transformation
-        latitude, longitude = lambert93_to_wgs84(coordx, coordy)
+        latitude, longitude = lambert93_to_wgs84(int(coordx), int(coordy))
 
         return (longitude, latitude)
 
