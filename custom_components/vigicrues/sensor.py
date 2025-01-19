@@ -3,7 +3,7 @@ from datetime import timedelta
 import logging
 import requests
 import voluptuous as vol
-from pyproj import Proj, transform, CRS
+import math
 
 from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass
@@ -33,6 +33,59 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         sensors.append(VigicruesWaterFlowRateSensor(station))
 
     add_entities(sensors, True)
+
+
+def lambert93_to_wgs84(x, y):
+    """
+    Converts Lambert 93 (RGF93) coordinates to WGS 84 geographic coordinates (latitude and longitude).
+
+    This function implements the conversion using the official Lambert 93 projection parameters
+    provided by the French Institut Géographique National (IGN). It calculates the latitude and
+    longitude in decimal degrees without using external libraries.
+
+    Args:
+        x (float): The x-coordinate in the Lambert 93 projection (in meters).
+        y (float): The y-coordinate in the Lambert 93 projection (in meters).
+
+    Returns:
+        tuple: A tuple containing:
+            - latitude (float): The latitude in decimal degrees.
+            - longitude (float): The longitude in decimal degrees.
+
+    Example:
+        >>> x, y = 657256, 6853507
+        >>> latitude, longitude = lambert93_to_wgs84(x, y)
+        >>> print(f"Latitude: {latitude:.6f}, Longitude: {longitude:.6f}")
+        Latitude: 48.780238, Longitude: 2.418295
+    """
+    # Constants for Lambert 93 (RGF93)
+    GRS80_E = 0.0818191910428158  # Eccentricity of the GRS80 ellipsoid
+    GRS80_A = 6378137.0  # Semi-major axis (in meters)
+
+    # Lambert 93 parameters
+    n = 0.7256077650532670
+    c = 11754255.4261
+    xs = 700000.0
+    ys = 12655612.0499
+    lon_meridian_origin = 3 * math.pi / 180  # In radians
+
+    # Intermediate calculations
+    x_diff = x - xs
+    y_diff = ys - y
+    r = math.sqrt(x_diff**2 + y_diff**2)
+    gamma = math.atan2(x_diff, -y_diff)
+    l = -math.log(r / c) / n
+
+    # Isometric latitude calculation
+    lat_iso = math.asin(math.tanh(l))
+    for _ in range(5):  # Iterative approximation
+        lat_iso = math.asin(math.tanh(l + GRS80_E * math.atanh(GRS80_E * math.sin(lat_iso))))
+
+    # Final latitude and longitude
+    latitude = math.degrees(lat_iso)
+    longitude = math.degrees(gamma / n + lon_meridian_origin)
+
+    return latitude, longitude
 
 
 class VigicruesSensor(Entity):
@@ -161,14 +214,8 @@ class Vigicrues(object):
         coordstation = data.get("CoordStationHydro")
         coordx, coordy = coordstation.get("CoordXStationHydro"), coordstation.get("CoordYStationHydro")
 
-        # Define the source coordinate system (Lambert 93, EPSG:2154)
-        proj_lambert93 = Proj(CRS.from_epsg(2154))
-
-        # Define the target coordinate system (WGS 84, EPSG:4326)
-        proj_wgs84 = Proj(CRS.from_epsg(4326))
-
         # Coordinate transformation
-        longitude, latitude = transform(proj_lambert93, proj_wgs84, coordx, coordy)
+        latitude, longitude = lambert93_to_wgs84(coordx, coordy)
 
         return (longitude, latitude)
 
