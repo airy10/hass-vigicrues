@@ -37,55 +37,49 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
 def lambert93_to_wgs84(x, y):
     """
-    Converts Lambert 93 (RGF93) coordinates to WGS 84 geographic coordinates (latitude and longitude).
+    Converts Lambert 93 coordinates (x, y) to WGS84 geographic coordinates (latitude, longitude).
 
-    This function implements the conversion using the official Lambert 93 projection parameters
-    provided by the French Institut Géographique National (IGN). It calculates the latitude and
-    longitude in decimal degrees without using external libraries.
-
-    Args:
-        x (float): The x-coordinate in the Lambert 93 projection (in meters).
-        y (float): The y-coordinate in the Lambert 93 projection (in meters).
+    Parameters:
+        x (float): The X-coordinate in Lambert 93 (meters).
+        y (float): The Y-coordinate in Lambert 93 (meters).
 
     Returns:
         tuple: A tuple containing:
-            - latitude (float): The latitude in decimal degrees.
-            - longitude (float): The longitude in decimal degrees.
-
-    Example:
-        >>> x, y = 657256, 6853507
-        >>> latitude, longitude = lambert93_to_wgs84(x, y)
-        >>> print(f"Latitude: {latitude:.6f}, Longitude: {longitude:.6f}")
-        Latitude: 48.780238, Longitude: 2.418295
+            - latitude (float): Latitude in WGS84 (degrees).
+            - longitude (float): Longitude in WGS84 (degrees).
     """
-    # Constants for Lambert 93 (RGF93)
-    GRS80_E = 0.0818191910428158  # Eccentricity of the GRS80 ellipsoid
-    GRS80_A = 6378137.0  # Semi-major axis (in meters)
+    # Constants for the Lambert 93 projection
+    a = 6378137.0  # Semi-major axis of the GRS80 ellipsoid
+    e = 0.0818191910428158  # Ellipsoid eccentricity
+    n = 0.7256077650532670  # Projection scale factor
+    c = 11754255.4261  # Projection constant
+    Xs = 700000.0  # X-coordinate of the false origin
+    Ys = 12655612.0499  # Y-coordinate of the false origin
+    lambda0 = 3 * math.pi / 180  # Central meridian (3°E in radians)
 
-    # Lambert 93 parameters
-    n = 0.7256077650532670
-    c = 11754255.4261
-    xs = 700000.0
-    ys = 12655612.0499
-    lon_meridian_origin = 3 * math.pi / 180  # In radians
+    # Calculate the polar radius (distance to the origin in the Lambert 93 projection)
+    r = math.sqrt((x - Xs)**2 + (y - Ys)**2)
 
-    # Intermediate calculations
-    x_diff = x - xs
-    y_diff = ys - y
-    r = math.sqrt(x_diff**2 + y_diff**2)
-    gamma = math.atan2(x_diff, -y_diff)
-    l = -math.log(r / c) / n
+    # Calculate the polar angle (angle from the origin)
+    gamma = math.atan((x - Xs) / (Ys - y))
 
-    # Isometric latitude calculation
-    lat_iso = math.asin(math.tanh(l))
-    for _ in range(5):  # Iterative approximation
-        lat_iso = math.asin(math.tanh(l + GRS80_E * math.atanh(GRS80_E * math.sin(lat_iso))))
+    # Compute the isometric latitude
+    l = -math.log(abs(r / c)) / n
+    lat_iso = 2 * math.atan(math.exp(l)) - math.pi / 2
 
-    # Final latitude and longitude
-    latitude = math.degrees(lat_iso)
-    longitude = math.degrees(gamma / n + lon_meridian_origin)
+    # Iteratively compute the geographic latitude
+    phi = lat_iso
+    for _ in range(7):  # Use 7 iterations to ensure precision
+        phi = 2 * math.atan(
+            ((1 + e * math.sin(phi)) / (1 - e * math.sin(phi)))**(e / 2) * math.exp(l)
+        ) - math.pi / 2
 
-    return latitude, longitude
+    # Compute the geographic longitude
+    lon = lambda0 + gamma / n
+    lat = phi
+
+    # Convert latitude and longitude from radians to degrees
+    return math.degrees(lat), math.degrees(lon)
 
 
 class VigicruesSensor(Entity):
