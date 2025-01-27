@@ -6,7 +6,7 @@ import voluptuous as vol
 import math
 
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass, SensorStateClass
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.util import slugify
@@ -121,6 +121,7 @@ class VigicruesHeightSensor(VigicruesSensor):
     """Representation of Vigicrues Height Sensor."""
 
     _attr_device_class = SensorDeviceClass.DISTANCE
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:waves-arrow-up"
 
     def __init__(self, station):
@@ -143,6 +144,7 @@ class VigicruesWaterFlowRateSensor(VigicruesSensor):
     """Representation of Vigicrues WaterFlow Sensor."""
 
     _attr_device_class = SensorDeviceClass.VOLUME_FLOW_RATE
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = "mdi:waves"
 
     def __init__(self, station):
