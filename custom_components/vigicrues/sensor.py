@@ -6,7 +6,7 @@ import voluptuous as vol
 import math
 
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorDeviceClass, SensorStateClass, SensorEntity
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.util import slugify
@@ -82,7 +82,7 @@ def lambert93_to_wgs84(x, y):
     return math.degrees(lat), math.degrees(lon)
 
 
-class VigicruesSensor(Entity):
+class VigicruesSensor(SensorEntity):
     """Representation of a Vigicrues Sensor."""
 
     def __init__(self, station, _type):
@@ -95,6 +95,8 @@ class VigicruesSensor(Entity):
             ATTR_LATITUDE: self.station.coordinates[1],
         }
         self._attr_entity_picture = station.get_entity_picture()
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_native_unit_of_measurement = METRICS_INFO.get(_type).get("unit")
 
 
     @property
@@ -106,11 +108,6 @@ class VigicruesSensor(Entity):
     def unique_id(self):
         """Return the unique id of the sensor."""
         return slugify(self._name)
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return METRICS_INFO.get(self._type).get("unit")
 
     def name_type(self):
         """Return the name of the type."""
@@ -126,17 +123,12 @@ class VigicruesHeightSensor(VigicruesSensor):
     def __init__(self, station):
         """Initialize the sensor."""
         super().__init__(station, "H")
-        self._state = self.station.height
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._state
+        self._attr_native_value = self.station.height
 
     def update(self):
         """Fetch new state data for the sensor."""
         self.station.update()
-        self._state = self.station.height
+        self._attr_native_value = self.station.height
 
 
 class VigicruesWaterFlowRateSensor(VigicruesSensor):
@@ -148,18 +140,12 @@ class VigicruesWaterFlowRateSensor(VigicruesSensor):
     def __init__(self, station):
         """Initialize the sensor."""
         super().__init__(station, "Q")
-        self._state = self.station.waterflowrate
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._state
+        self._attr_native_value = self.station.waterflowrate * 3600 if self.station.waterflowrate is not None else None
 
     def update(self):
         """Fetch new state data for the sensor."""
         self.station.update()
-        self._state = self.station.waterflowrate
-
+        self._attr_native_value = self.station.waterflowrate * 3600 if self.station.waterflowrate is not None else None
 
 class Vigicrues(object):
     """vigicrues object."""
